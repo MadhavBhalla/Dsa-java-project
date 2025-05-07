@@ -23,17 +23,6 @@ class TransactionHistory {
     public void add(Transaction t) {
         transactions.add(t);
     }
-
-    public void printHistory() {
-        System.out.println("Transaction History:");
-        for (Transaction t : transactions) {
-            System.out.println(t);
-        }
-    }
-
-    public Transaction[] toArray() {
-        return transactions.toArray(new Transaction[0]);
-    }
 }
 
 // Queue for pending transactions
@@ -81,6 +70,10 @@ class BankAccount {
         history.add(t);
     }
 
+    public double getBalance() {
+        return balance;
+    }
+
     public void printDetails() {
         System.out.println("Account #" + accountNumber + " | Balance: $" + balance);
     }
@@ -125,61 +118,17 @@ class AccountBST {
                 ? searchRec(root.left, accNo)
                 : searchRec(root.right, accNo);
     }
-}
 
-// Sorting Algorithms
-class SortUtils {
-    public static void bubbleSort(Transaction[] arr) {
-        int n = arr.length;
-        for (int i = 0; i < n - 1; i++)
-            for (int j = 0; j < n - i - 1; j++)
-                if (arr[j].amount > arr[j + 1].amount) {
-                    Transaction temp = arr[j];
-                    arr[j] = arr[j + 1];
-                    arr[j + 1] = temp;
-                }
+    // Method to calculate total balance of all accounts
+    public double getTotalBalance() {
+        return calculateTotalBalance(root);
     }
 
-    public static void mergeSort(Transaction[] arr, int l, int r) {
-        if (l < r) {
-            int m = (l + r) / 2;
-            mergeSort(arr, l, m);
-            mergeSort(arr, m + 1, r);
-            merge(arr, l, m, r);
-        }
-    }
-
-    private static void merge(Transaction[] arr, int l, int m, int r) {
-        Transaction[] left = Arrays.copyOfRange(arr, l, m + 1);
-        Transaction[] right = Arrays.copyOfRange(arr, m + 1, r + 1);
-        int i = 0, j = 0, k = l;
-
-        while (i < left.length && j < right.length)
-            arr[k++] = (left[i].amount <= right[j].amount) ? left[i++] : right[j++];
-
-        while (i < left.length) arr[k++] = left[i++];
-        while (j < right.length) arr[k++] = right[j++];
-    }
-}
-
-// Searching Algorithms
-class SearchUtils {
-    public static int linearSearch(Transaction[] arr, double target) {
-        for (int i = 0; i < arr.length; i++)
-            if (arr[i].amount == target)
-                return i;
-        return -1;
-    }
-
-    public static int binarySearch(Transaction[] arr, double target) {
-        int left = 0, right = arr.length - 1;
-        while (left <= right) {
-            int mid = (left + right) / 2;
-            if (arr[mid].amount == target) return mid;
-            if (arr[mid].amount < target) left = mid + 1;
-            else right = mid - 1;
-        }
-        return -1;
+    private double calculateTotalBalance(BSTNode node) {
+        if (node == null) return 0;
+        return node.account.getBalance() 
+                + calculateTotalBalance(node.left) 
+                + calculateTotalBalance(node.right);
     }
 }
 
@@ -201,7 +150,7 @@ public class BankSystem {
 
         boolean running = true;
         while (running) {
-            System.out.println("\n1. Deposit\n2. Withdraw\n3. Print History\n4. Sort History\n5. Search Transaction\n6. Exit");
+            System.out.println("\n1. Deposit\n2. Withdraw\n3. Show Total Balance\n4. Exit");
             System.out.print("Choose: ");
             int choice = sc.nextInt();
 
@@ -233,61 +182,10 @@ public class BankSystem {
                     }
                 }
                 case 3 -> {
-                    System.out.print("Enter account number: ");
-                    int accNo = sc.nextInt();
-                    BankAccount acc = bst.search(accNo);
-                    if (acc != null) {
-                        acc.printDetails();
-                        acc.history.printHistory();
-                    } else {
-                        System.out.println("Account not found.");
-                    }
+                    double totalBalance = bst.getTotalBalance();
+                    System.out.println("Total Balance of All Accounts: $" + totalBalance);
                 }
                 case 4 -> {
-                    System.out.print("Enter account number: ");
-                    int accNo = sc.nextInt();
-                    BankAccount acc = bst.search(accNo);
-                    if (acc != null) {
-                        Transaction[] arr = acc.history.toArray();
-                        System.out.print("Sort using (1. Bubble Sort, 2. Merge Sort): ");
-                        int sortChoice = sc.nextInt();
-                        if (sortChoice == 1)
-                            SortUtils.bubbleSort(arr);
-                        else
-                            SortUtils.mergeSort(arr, 0, arr.length - 1);
-
-                        System.out.println("Sorted Transactions:");
-                        for (Transaction t : arr) System.out.println(t);
-                    } else {
-                        System.out.println("Account not found.");
-                    }
-                }
-                case 5 -> {
-                    System.out.print("Enter account number: ");
-                    int accNo = sc.nextInt();
-                    BankAccount acc = bst.search(accNo);
-                    if (acc != null) {
-                        Transaction[] arr = acc.history.toArray();
-                        SortUtils.mergeSort(arr, 0, arr.length - 1); // binary search needs sorted array
-
-                        System.out.print("Enter amount to search: ");
-                        double amt = sc.nextDouble();
-                        System.out.print("Search using (1. Linear, 2. Binary): ");
-                        int method = sc.nextInt();
-
-                        int result = (method == 1)
-                                ? SearchUtils.linearSearch(arr, amt)
-                                : SearchUtils.binarySearch(arr, amt);
-
-                        if (result >= 0)
-                            System.out.println("Transaction found: " + arr[result]);
-                        else
-                            System.out.println("Transaction not found.");
-                    } else {
-                        System.out.println("Account not found.");
-                    }
-                }
-                case 6 -> {
                     System.out.println("Exiting...");
                     running = false;
                 }
@@ -298,3 +196,4 @@ public class BankSystem {
         sc.close();
     }
 }
+
